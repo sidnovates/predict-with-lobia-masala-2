@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
-from sklearn.svm import LinearSVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import classification_report, accuracy_score
 
 
@@ -30,6 +30,7 @@ categorical_features = [
     "OwnsProperty","FundUseCase","JointApplicant"
 ]
 
+
 # ==========================================================
 # PREPROCESSOR (COMMON)
 # ==========================================================
@@ -44,15 +45,13 @@ preprocessor = ColumnTransformer(
 # ==========================================================
 # FUNCTION TO RUN AND SAVE MODEL
 # ==========================================================
-def run_svm_linear(model_dir, X_train, y_train, X_val, y_val, 
-                   X_test_internal, y_test_internal, class_weight, final_test_data):
-
+def run_lr(model_dir, X_train, y_train, X_val, y_val, X_test_internal, y_test_internal, class_weight, final_test_data):
     os.makedirs(model_dir, exist_ok=True)
 
     model = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("clf", LinearSVC(C=1.0, class_weight=class_weight, max_iter=5000))
+            ("clf", LogisticRegression(max_iter=500, class_weight=class_weight))
         ]
     )
 
@@ -87,21 +86,21 @@ def run_svm_linear(model_dir, X_train, y_train, X_val, y_val,
         "RiskFlag": final_pred.astype(int)
     })
 
-    csv_name = model_dir.split("\\")[-1] + "_SVM_Linear.csv"
+    csv_name = model_dir.split("\\")[-1] + "_Binomial_LR.csv"
     submission.to_csv(os.path.join(model_dir, csv_name), index=False)
 
 
 # ==========================================================
-# MAIN EXECUTION
+# MAIN PIPELINE
 # ==========================================================
-def run_all_linear_svm():
+def run_all_lr_models():
 
-    BASE_DIR = "SVM_Linear"
+    BASE_DIR = "Binomial_LR"
     os.makedirs(BASE_DIR, exist_ok=True)
 
-    # ==========================================================
+    # =========================================
     # 80% DATASET
-    # ==========================================================
+    # =========================================
     train_80, test_10_internal = train_test_split(
         train_df, test_size=0.10, random_state=42, stratify=train_df[TARGET]
     )
@@ -121,33 +120,39 @@ def run_all_linear_svm():
 
     X_final_test = test_df.drop(ID_COL, axis=1)
 
-    # 80% SKEWED
-    print("Running 80% Skewed Linear SVM...")
-    run_svm_linear(
+    # =================================================
+    print("Running 80% Skewed LR...")
+    run_lr(
         model_dir=os.path.join(BASE_DIR, "80_skewed"),
-        X_train=X_train_80, y_train=y_train_80,
-        X_val=X_val_80, y_val=y_val_80,
-        X_test_internal=X_test_int_80, y_test_internal=y_test_int_80,
-        class_weight=None,
+        X_train=X_train_80,
+        y_train=y_train_80,
+        X_val=X_val_80,
+        y_val=y_val_80,
+        X_test_internal=X_test_int_80,
+        y_test_internal=y_test_int_80,
+        class_weight=None,         # SKEWED
         final_test_data=X_final_test
     )
-    print("80% Skewed Linear SVM Completed!\n")
+    print("80% Skewed LR Completed!\n")
 
-    # 80% NON-SKEWED
-    print("Running 80% Non-Skewed Linear SVM...")
-    run_svm_linear(
+    # =================================================
+    print("Running 80% Non-Skewed LR...")
+    run_lr(
         model_dir=os.path.join(BASE_DIR, "80_nonskewed"),
-        X_train=X_train_80, y_train=y_train_80,
-        X_val=X_val_80, y_val=y_val_80,
-        X_test_internal=X_test_int_80, y_test_internal=y_test_int_80,
-        class_weight="balanced",
+        X_train=X_train_80,
+        y_train=y_train_80,
+        X_val=X_val_80,
+        y_val=y_val_80,
+        X_test_internal=X_test_int_80,
+        y_test_internal=y_test_int_80,
+        class_weight="balanced",   # NON-SKEWED
         final_test_data=X_final_test
     )
-    print("80% Non-Skewed Linear SVM Completed!\n")
+    print("80% Non-Skewed LR Completed!\n")
 
-    # ==========================================================
-    # 20% DATASET
-    # ==========================================================
+    # =========================================
+    # 20% DATASET (Stratified)
+    # =========================================
     train_20, _ = train_test_split(
         train_df, train_size=0.20, random_state=42, stratify=train_df[TARGET]
     )
@@ -165,33 +170,39 @@ def run_all_linear_svm():
     X_test_int_20 = test_10_internal.drop([TARGET, ID_COL], axis=1)
     y_test_int_20 = test_10_internal[TARGET]
 
-    # 20% SKEWED
-    print("Running 20% Skewed Linear SVM...")
-    run_svm_linear(
+    # =================================================
+    print("Running 20% Skewed LR...")
+    run_lr(
         model_dir=os.path.join(BASE_DIR, "20_skewed"),
-        X_train=X_train_20, y_train=y_train_20,
-        X_val=X_val_20, y_val=y_val_20,
-        X_test_internal=X_test_int_20, y_test_internal=y_test_int_20,
-        class_weight=None,
+        X_train=X_train_20,
+        y_train=y_train_20,
+        X_val=X_val_20,
+        y_val=y_val_20,
+        X_test_internal=X_test_int_20,
+        y_test_internal=y_test_int_20,
+        class_weight=None,         # SKEWED
         final_test_data=X_final_test
     )
-    print("20% Skewed Linear SVM Completed!\n")
+    print("20% Skewed LR Completed!\n")
 
-    # 20% NON-SKEWED
-    print("Running 20% Non-Skewed Linear SVM...")
-    run_svm_linear(
+    # =================================================
+    print("Running 20% Non-Skewed LR...")
+    run_lr(
         model_dir=os.path.join(BASE_DIR, "20_nonskewed"),
-        X_train=X_train_20, y_train=y_train_20,
-        X_val=X_val_20, y_val=y_val_20,
-        X_test_internal=X_test_int_20, y_test_internal=y_test_int_20,
-        class_weight="balanced",
+        X_train=X_train_20,
+        y_train=y_train_20,
+        X_val=X_val_20,
+        y_val=y_val_20,
+        X_test_internal=X_test_int_20,
+        y_test_internal=y_test_int_20,
+        class_weight="balanced",   # NON-SKEWED
         final_test_data=X_final_test
     )
-    print("20% Non-Skewed Linear SVM Completed!\n")
+    print("20% Non-Skewed LR Completed!\n")
 
 
 # ==========================================================
 # RUN EVERYTHING
 # ==========================================================
-run_all_linear_svm()
-print("All Linear SVM Models Completed Successfully!")
+run_all_lr_models()
+print("All Binomial LR Models Completed Successfully!")

@@ -1,0 +1,8 @@
+Validation Accuracy: 0.6774619960343689
+Test Accuracy: 0.6712355590366164
+
+Best Params (Random Search):
+{'clf__penalty': 'l2', 'clf__C': np.float64(0.006158482110660267)}
+
+Best Params (Bayesian Search):
+OrderedDict([('clf__C', 0.013894712097873147)])

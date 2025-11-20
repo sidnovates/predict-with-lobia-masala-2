@@ -1,0 +1,2 @@
+Validation Accuracy: 0.887056
+Test Accuracy:       0.886920
