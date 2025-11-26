@@ -1,0 +1,2 @@
+Train accuracy: 0.7629186900759557
+Validation accuracy: 0.7544820717131474
