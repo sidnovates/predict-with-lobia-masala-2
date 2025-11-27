@@ -1,0 +1,1397 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[hidelinks]{hyperref} % Hidelinks to remove red boxes
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{longtable}
+\usepackage{mathpazo} % Palatino font
+\usepackage{ulem} % For underlining
+\usepackage{eso-pic} % For page borders
+\usepackage{tikz} % For drawing borders
+\usepackage{fontawesome5} % For GitHub icon
+
+% Page Border Configuration
+\AddToShipoutPictureBG{%
+  \begin{tikzpicture}[remember picture, overlay]
+    \draw[line width=1pt]
+      ([xshift=0.5in,yshift=-0.5in]current page.north west)
+      rectangle
+      ([xshift=-0.5in,yshift=0.5in]current page.south east);
+  \end{tikzpicture}%
+}
+
+% Heading Configuration (No underlines)
+\titleformat{\section}
+  {\normalfont\Large\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries}{\thesubsubsection}{1em}{}
+
+\begin{document}
+
+% --------------------------------------
+% TITLE PAGE (FAADU VERSION ��)
+% --------------------------------------
+\begin{titlepage}
+    \centering
+    
+    % Extra spacing to push content to true center
+    \vspace*{2cm}
+    
+    % MASSIVE TITLE
+    {\fontsize{40}{48}\selectfont \textbf{\textsf{MACHINE LEARNING}} \par}
+    \vspace{0.4cm}
+    {\fontsize{32}{40}\selectfont \textbf{\textsf{PROJECT REPORT}} \par}
+    
+    \vspace{3cm}
+    
+    % Authors
+    {\Large \textbf{Submitted By}} \vspace{1cm}
+    
+    {\Large
+    \begin{tabular}{rl}
+        Siddharth Anil & --- IMT2023503 \\
+        Krish Patel    & --- IMT2023134 \\
+        Chaitya Shah   & --- IMT2023055 \\
+    \end{tabular}
+    }
+    
+    \vspace{3.5cm}
+    
+    % GitHub
+    {\Large \textbf{Project Repository}} \vspace{0.8cm} \\
+    \href{https://github.com/sidnovates/predict-with-lobia-masala-2}{\Huge \faGithub}
+    
+    \vfill
+    
+    % Footer date
+    {\Large \textbf{\today}}
+\end{titlepage}
+
+\clearpage
+\thispagestyle{plain}
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\newpage
+
+% --- MAIN REPORT ---
+{\Large \section*{Model Training Methodology}}
+\addcontentsline{toc}{section}{Model Training Methodology}
+
+
+\subsection*{Data Splitting Strategy}
+To rigorously evaluate model performance, we employed two distinct data splitting strategies:
+
+\begin{enumerate}
+    \item \textbf{Split A (80/10/10)}:
+    \begin{itemize}
+        \item \textbf{Training}: 80\% of the dataset.
+        \item \textbf{Validation}: 10\% of the dataset.
+        \item \textbf{Testing}: 10\% of the dataset.
+        \item \textit{Purpose}: To assess performance when ample training data is available.
+    \end{itemize}
+
+    \item \textbf{Split B (20/40/40)}:
+    \begin{itemize}
+        \item \textbf{Training}: 20\% of the dataset.
+        \item \textbf{Validation}: 40\% of the dataset.
+        \item \textbf{Testing}: 40\% of the dataset.
+        \item \textit{Purpose}: To simulate low-resource scenarios and test model generalization with limited training data.
+    \end{itemize}
+\end{enumerate}
+
+\subsection*{Data Distribution (Skewed vs. Non-Skewed)}
+We also experimented with the class distribution of the training data:
+
+\begin{itemize}
+    \item \textbf{Skewed (Natural Distribution)}: The dataset is used as-is, preserving the original class imbalance. This reflects the real-world distribution of the data.
+    \item \textbf{Non-Skewed (Balanced)}: We applied upsampling to the minority classes to match the size of the majority class. This technique aims to prevent the model from becoming biased toward the majority class.
+\end{itemize}
+
+\subsection*{Experimental Configurations}
+For every model architecture, we trained and evaluated four distinct configurations:
+\begin{enumerate}
+    \item \textbf{80\% Train - Skewed}
+    \item \textbf{80\% Train - Non-Skewed}
+    \item \textbf{20\% Train - Skewed}
+    \item \textbf{20\% Train - Non-Skewed}
+\end{enumerate}
+
+This allows us to analyze the impact of both dataset size and class balance on model performance.
+\newpage
+\section{Financial Risk Profiling - Binomial Classification Dataset}
+\subsection{Overview}
+The Binomial Classification dataset is related to financial risk assessment, likely for loan applications or credit scoring. The objective is to predict the \texttt{RiskFlag}, which indicates whether an applicant poses a risk (e.g., default on a loan).
+
+\subsection{Dataset Structure}
+The dataset consists of the following columns:
+
+\begin{longtable}{lp{10cm}}
+\toprule
+\textbf{Feature Name} & \textbf{Description} \\
+\midrule
+\texttt{ProfileID} & Unique identifier for the applicant. \\
+\texttt{ApplicantYears} & Age of the applicant. \\
+\texttt{AnnualEarnings} & Annual income of the applicant. \\
+\texttt{RequestedSum} & The amount of money requested (e.g., loan amount). \\
+\texttt{TrustMetric} & A score indicating the trustworthiness or credit score of the applicant. \\
+\texttt{WorkDuration} & Duration of employment or work experience. \\
+\texttt{ActiveAccounts} & Number of active financial accounts. \\
+\texttt{OfferRate} & Interest rate offered or applicable. \\
+\texttt{RepayPeriod} & Period for repayment (likely in months). \\
+\texttt{DebtFactor} & A ratio or factor representing debt obligation. \\
+\texttt{QualificationLevel} & Educational qualification (e.g., High School, Bachelor's). \\
+\texttt{WorkCategory} & Employment type (e.g., Self-employed, Full-time). \\
+\texttt{RelationshipStatus} & Marital or relationship status (e.g., Single, Married). \\
+\texttt{OwnsProperty} & Binary indicator if the applicant owns property (Yes/No). \\
+\texttt{FamilyObligation} & Binary indicator of family obligations (Yes/No). \\
+\texttt{FundUseCase} & Purpose of the funds (e.g., Business, Education). \\
+\texttt{JointApplicant} & Binary indicator if there is a joint applicant (Yes/No). \\
+\textbf{\texttt{RiskFlag}} & \textbf{Target Variable}. Binary variable (0 or 1) indicating risk. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Target Variable Analysis}
+The target variable is \texttt{RiskFlag}. It is a binary variable where:
+\begin{itemize}
+    \item \textbf{0}: Likely indicates low risk or non-default.
+    \item \textbf{1}: Likely indicates high risk or default.
+\end{itemize}
+
+\subsubsection{Class Imbalance}
+The dataset shows a \textbf{severe class imbalance}:
+\begin{itemize}
+    \item \textbf{Class 0 (Low Risk)}: 88.4\% (180,524 instances).
+    \item \textbf{Class 1 (High Risk)}: 11.6\% (23,753 instances).
+\end{itemize}
+A very high number of applicants are labeled as low risk (0). This significant skew means that a model predicting "Low Risk" for every applicant would achieve an accuracy of approximately 88.4\%, but would fail to identify any high-risk applicants. This imbalance is a critical factor to consider during model training and evaluation, necessitating techniques like resampling (SMOTE, undersampling) or cost-sensitive learning.
+
+
+
+\subsection{Preprocessing and Exploratory Data Analysis}
+\subsubsection{Outlier and Covariance Assessment}
+
+We analyzed the dataset using scatter plots and box plots to identify potential outliers. Upon visual inspection, no significant outliers were detected in the data. Additionally, we examined the covariance between features and found it to be very low. Consequently, no features were removed, and no specific preprocessing steps such as outlier rejection or feature selection were performed.
+
+\subsubsection{Feature Preprocessing Pipeline}
+To prepare the data for modeling, we implemented a \texttt{ColumnTransformer} to apply specific transformations to numeric and categorical features:
+
+\begin{itemize}
+    \item \textbf{Target Variable}: \texttt{RiskFlag}
+    \item \textbf{Numeric Features}: The following 9 features were scaled using \textbf{StandardScaler} to ensure zero mean and unit variance:
+    \begin{itemize}
+        \item \texttt{ApplicantYears}, \texttt{AnnualEarnings}, \texttt{RequestedSum}, \texttt{TrustMetric}, \texttt{WorkDuration}, \texttt{ActiveAccounts}, \texttt{OfferRate}, \texttt{RepayPeriod}, \texttt{DebtFactor}
+    \end{itemize}
+    \item \textbf{Categorical Features}: The following 7 features were encoded using \textbf{OneHotEncoder}// (with \texttt{handle\_unknown="ignore"} and \texttt{sparse\_output=False}):
+    \begin{itemize}
+        \item \texttt{QualificationLevel}, \texttt{WorkCategory}, \texttt{RelationshipStatus}, \texttt{FamilyObligation}, \texttt{OwnsProperty}, \texttt{FundUseCase}, \texttt{JointApplicant}
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Feature Engineering}
+The following feature engineering steps were applied to the Binomial Classification dataset to prepare it for the ensemble model:
+
+\begin{itemize}
+    \item \textbf{Feature Removal}: The \texttt{ProfileID} column was dropped as it is a unique identifier with no predictive value.
+    \item \textbf{Feature Creation}:
+    \begin{itemize}
+        \item \texttt{IncomeToLoanRatio}: A new feature representing the applicant's repayment capacity, calculated as:
+        \[
+        \text{IncomeToLoanRatio} = \frac{\text{AnnualEarnings}}{\text{RequestedSum} + 1}
+        \]
+        \item \texttt{CreditUtilization}: A proxy for credit usage relative to trustworthiness, calculated as:
+        \[
+        \text{CreditUtilization} = \frac{\text{RequestedSum}}{\text{TrustMetric} + 1}
+        \]
+    \end{itemize}
+    \item \textbf{Categorical Encoding}: All categorical variables were encoded using \texttt{LabelEncoder}. The encoder was fitted on the combined training and test datasets to ensure consistent mapping of all categories.
+    \item \textbf{Numerical Scaling}: Numerical features were standardized using \texttt{StandardScaler}, which scales data to have a mean of 0 and a standard deviation of 1.
+\end{itemize}
+
+\subsection{Models}
+\subsubsection{Logistic Regression Models}
+
+\subsubsection*{1a. Standard Binomial Logistic Regression}
+
+\textbf{Method Description:}
+A baseline Logistic Regression model is trained using the \texttt{lbfgs} solver with a maximum of 500 iterations. It models the probability of the binary outcome using the logistic function.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8854 & 0.8855 & 0.885 \\
+80\% & Non-Skewed & 0.6746 & 0.6760 & 0.677 \\
+20\% & Skewed & 0.8848 & 0.8855 & 0.885 \\
+20\% & Non-Skewed & 0.6788 & 0.6714 & 0.676 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph*{1b. Binomial Logistic Regression with Bayesian Optimization}
+
+\textbf{Method Description:}
+This approach utilizes \textbf{Bayesian Optimization} to exhaustively search for the optimal hyperparameters. The single set of "best" hyperparameters identified from this process was then applied to train models for all four data scenarios, testing the generalizability of the tuned configuration.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8854 & 0.8855 & 0.885 \\
+80\% & Non-Skewed & 0.6745 & 0.6761 & 0.677 \\
+20\% & Skewed & 0.8852 & 0.8856 & 0.885 \\
+20\% & Non-Skewed & 0.6775 & 0.6712 & 0.676 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph*{1c. Tuned Binomial Logistic Regression (Bayesian Approach + Random Search)}
+
+\textbf{Method Description:}
+This method employs a robust two-stage hyperparameter tuning process to optimize the regularization strength (\texttt{C}). First, a \textbf{Random Search} explores a wide logarithmic range of values. This is followed by \textbf{Bayesian Optimization} (using Gaussian Process via \texttt{skopt}), which refines the search around the most promising region found in the first stage. This tuning process is performed \textbf{independently} for each of the four data scenarios to find the specific optimal parameters for that distribution.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.6744 & 0.6760 & 0.677 \\
+80\% & Non-Skewed & 0.6744 & 0.6760 & 0.677 \\
+20\% & Skewed & 0.6786 & 0.6715 & 0.676 \\
+20\% & Non-Skewed & 0.6786 & 0.6715 & 0.676 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: The similar results across skewed and non-skewed versions in this method are because the optimal \texttt{class\_weight='balanced'} found during the 80\% Non-Skewed tuning was enforced on all models.}
+
+
+\subsubsection{Support Vector Machines (SVM)}
+
+\paragraph*{2a. Linear SVM}
+
+\textbf{Method Description:}
+The Linear SVM model is implemented using \texttt{LinearSVC}. It attempts to separate the classes with a linear hyperplane.
+
+\begin{itemize}
+    \item \textbf{Skewed:} Trained with standard parameters (\texttt{C=1.0}).
+    \item \textbf{Non-Skewed:} Trained with \texttt{class\_weight='balanced'} to handle class imbalance.
+\end{itemize}
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8837 & 0.8837 & 0.884 \\
+80\% & Non-Skewed & 0.6725 & 0.6738 & 0.675 \\
+20\% & Skewed & 0.8837 & 0.8837 & 0.885 \\
+20\% & Non-Skewed & 0.6766 & 0.6698 & 0.674 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph*{2b. RBF SVM (Radial Basis Function)}
+
+\textbf{Method Description:}
+This method uses the \texttt{SVC} class with the RBF kernel (\texttt{kernel='rbf'}). RBF is a popular kernel that can handle complex non-linear relationships by measuring the similarity between data points.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8838 & 0.8837 & 0.884 \\
+80\% & Non-Skewed & 0.6997 & 0.7002 & 0.698 \\
+20\% & Skewed & 0.8837 & 0.8837 & 0.884 \\
+20\% & Non-Skewed & 0.7030 & 0.7125 & 0.710 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph*{2c. Polynomial SVM}
+
+\textbf{Method Description:}
+This method uses the \texttt{SVC} class with a polynomial kernel (\texttt{kernel='poly', degree=3}). It maps the input features into a higher-dimensional space to find a non-linear decision boundary.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8837 & 0.8837 & 0.884 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: Results were only found for the \textbf{80\% Skewed} configuration in the artifacts as others were taking too long to train.}
+
+\paragraph*{2d. Sigmoid SVM}
+
+\textbf{Method Description:}
+This method uses the \texttt{SVC} class with the Sigmoid kernel (\texttt{kernel='sigmoid'}). The Sigmoid kernel is equivalent to a two-layer perceptron neural network.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+20\% & Skewed & 0.5596 & 0.5598 & 0.563 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: Results were only found for a \textbf{20\% Training Data} configuration as others were taking too long to train and also was not giving good results.}
+
+
+\subsubsection{Neural Networks}
+
+\subsubsection*{3a. MLP (Multi-Layer Perceptron)}
+
+\textbf{Method Description:}
+The MLP approach involves training fully connected Feed-Forward Neural Networks. Three distinct architectures were defined to test the impact of model complexity:
+
+\begin{itemize}
+    \item \textbf{NN\_Small:} A simple network with 1 hidden layer (64 units, ReLU) and Dropout (0.2).
+    \item \textbf{NN\_Medium:} A moderate network with 2 hidden layers (128, 64 units), Batch Normalization, and Dropout (0.3).
+    \item \textbf{NN\_Deep:} A complex network with 3 hidden layers (256, 128, 64 units), Batch Normalization, and Dropout (0.4/0.3/0.2).
+\end{itemize}
+
+All models use the Adam optimizer (\texttt{lr=1e-3}) and Binary Cross-Entropy loss.
+
+\textbf{Results:}
+
+\textbf{NN\_Small:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8871 & 0.8877 & 0.887 \\
+80\% & Non-Skewed & 0.6997 & 0.6998 & 0.699 \\
+20\% & Skewed & 0.8848 & 0.8859 & 0.887 \\
+20\% & Non-Skewed & 0.7019 & 0.7048 & 0.704 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{NN\_Medium:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8871 & 0.8869 & 0.886 \\
+80\% & Non-Skewed & 0.7054 & 0.7092 & 0.706 \\
+20\% & Skewed & 0.8841 & 0.8861 & 0.886 \\
+20\% & Non-Skewed & 0.8185 & 0.8184 & 0.818 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{NN\_Deep:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8867 & 0.8871 & 0.887 \\
+80\% & Non-Skewed & 0.6852 & 0.6858 & 0.685 \\
+20\% & Skewed & 0.8837 & 0.8856 & 0.885 \\
+20\% & Non-Skewed & 0.6850 & 0.6936 & 0.691 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection*{3b. MLP with Bayesian Optimization (Tuned)}
+
+\textbf{Method Description:}
+This method applies Bayesian Optimization (using \texttt{keras-tuner}) to find the optimal hyperparameters for the MLP architectures. The tuning search space includes the number of units, dropout rates, learning rate, and batch size.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Model} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & NN\_Small & 0.8868 & 0.8871 & 0.887 \\
+20\% & Skewed & NN\_Small & 0.8837 & 0.8859 & 0.887 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: Results were only found for the \textbf{NN\_Small} architecture on Skewed datasets as the \textbf{NN\_Medium} and \textbf{NN\_Deep} architectures were taking too long to train using Bayesian Tuning.}
+
+\subsubsection*{3c. SMOTE (Synthetic Minority Over-sampling Technique)}
+
+\textbf{Method Description:}
+This approach addresses class imbalance by using SMOTE to oversample the minority class in the training data \textit{before} training the neural networks. The same three architectures (Small, Medium, Deep) are used.
+
+\textbf{Skewed Dataset:}
+The dataset was imbalanced, so SMOTE was directly applied to address the minority class and create a more balanced distribution.
+No class weights were used, as the application of SMOTE already balanced the class proportions.
+
+\textbf{Results:}
+
+\textbf{NN\_SMOTE\_Small:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & 0.7974 & 0.8031 & 0.798 \\
+20\% & 0.7599 & 0.7653 & 0.765 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{NN\_SMOTE\_Medium:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & 0.8710 & 0.8725 & 0.874 \\
+20\% & 0.8328 & 0.8435 & 0.852 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{NN\_SMOTE\_Deep:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & 0.8780 & 0.8787 & 0.878 \\
+20\% & 0.8381 & 0.8390 & 0.840 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Decision Trees and Ensemble Methods}
+
+\subsubsection*{4a. Random Forest}
+
+\textbf{Method Description:}
+A Random Forest Classifier is trained with 400 estimators. The implementation (\texttt{RandomForest.ipynb}) uses a standard pipeline with \texttt{StandardScaler} for numeric features and \texttt{OneHotEncoder} for categorical features. For the non-skewed (balanced) configuration,\\ \texttt{class\_weight='balanced'} is used.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8856 & 0.8854 & 0.886 \\
+80\% & Non-Skewed & 0.8847 & 0.8844 & 0.885 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: This specific run (\texttt{RF2}) only contains results for the 80\% dataset splits.}
+
+\subsubsection*{4b. XGBoost}
+
+\textbf{Method Description:}
+An XGBoost Classifier is trained with \texttt{n\_estimators=400}, \texttt{learning\_rate=0.1}, and \texttt{max\_depth=6}. The implementation (\texttt{XGBoost.ipynb}) handles class imbalance for the non-skewed (balanced) configuration by calculating and setting the \texttt{scale\_pos\_weight} parameter (ratio of negative to positive samples). For skewed data, \texttt{scale\_pos\_weight} is set to 1.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8852 & 0.8859 & 0.887 \\
+80\% & Non-Skewed & 0.8852 & 0.8859 & 0.887 \\
+20\% & Skewed & 0.8831 & 0.8843 & 0.885 \\
+20\% & Non-Skewed & 0.8831 & 0.8843 & 0.885 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: The XGBoost results are identical for Skewed and Non-Skewed configurations.}
+
+\subsubsection*{4c. XGBoost (AUC Scoring)}
+
+\textbf{Method Description:}
+This variation of the XGBoost implementation utilizes \textbf{AUC (Area Under the Curve)} as the evaluation metric during training, likely for early stopping or model selection, instead of the default logloss or error rate. The underlying model architecture and hyperparameters remain similar to the standard XGBoost method.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} & \textbf{Leaderboard} \\
+\midrule
+80\% & Skewed & 0.8852 & 0.8859 & 0.887 \\
+80\% & Non-Skewed & 0.8852 & 0.8859 & 0.887 \\
+20\% & Skewed & 0.8831 & 0.8843 & 0.885 \\
+20\% & Non-Skewed & 0.8831 & 0.8843 & 0.885 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textit{Note: The results for XGBoost (AUC) are identical to the standard XGBoost method (using F1 Score as evaluation metric), indicating that optimizing for AUC in this context yielded the same final accuracy performance.}
+
+\newpage
+\subsection{Comparative Analysis \& Conclusion}
+
+\subsubsection{Impact of Data Distribution (Skewed vs. Non-Skewed)}
+We observed distinct behaviors across model families when training on Skewed (natural) versus Non-Skewed (balanced via upsampling) data.
+
+\subsubsection{Support Vector Machines (SVM)}
+\begin{itemize}
+    \item \textbf{Skewed Data}: SVMs achieved high accuracy ($\sim$88.4\%), effectively mimicking the baseline. They prioritized overall accuracy by favoring the majority class.
+    \item \textbf{Non-Skewed Data}: Performance dropped significantly to $\sim$67-70\%. By forcing the model to treat classes equally, the SVM decision boundary shifted, likely increasing false positives for the majority class. This trade-off suggests that while balanced training helps detect risk, it comes at a heavy cost to overall precision.
+\end{itemize}
+
+\subsubsection{Neural Networks (NNs)}
+\begin{itemize}
+    \item \textbf{Skewed Data}: Similar to SVMs, NNs on skewed data achieved baseline accuracy ($\sim$88.7\%).
+    \item \textbf{Non-Skewed Data}: Standard NNs struggled on balanced data, dropping to $\sim$70\%. However, the \textbf{SMOTE-augmented NNs} (specifically Medium and Deep architectures) showed the most promise. They achieved $\sim$87.8\% accuracy—slightly below the baseline—which indicates they were actually learning to classify the minority class rather than just ignoring it.
+\end{itemize}
+
+\subsubsection{Decision Trees (Random Forest \& XGBoost)}
+\begin{itemize}
+    \item \textbf{Robustness}: These models were remarkably robust to data distribution. Whether trained on Skewed or Non-Skewed data, they consistently maintained high accuracy ($\sim$88.5\%).
+    \item \textbf{Conclusion}: Tree-based ensembles handled the class imbalance naturally, likely due to their hierarchical structure which can isolate minority class regions without compromising the majority class predictions.
+\end{itemize}
+
+\subsubsection{Impact of Dataset Size (80\% vs. 20\%)}
+We analyzed whether reducing the training data from 80\% to 20\% affected model performance.
+
+\subsubsection{Support Vector Machines (SVM)}
+\begin{itemize}
+    \item \textbf{Minimal Impact}: There was almost no difference in performance between the 80\% and 20\% splits. This suggests that the decision boundary for this dataset is relatively simple (or the overlap is consistent), and the SVM could learn it effectively even with a smaller subset of data.
+\end{itemize}
+
+\subsubsection{Neural Networks (NNs)}
+\begin{itemize}
+    \item \textbf{Sensitivity}: NNs showed some volatility. For instance, the \textbf{NN\_Medium} model on Non-Skewed data jumped from $\sim$70\% (80\% split) to $\sim$81\% (20\% split). This suggests that deep learning models were more sensitive to the specific composition of the training set when data was limited, potentially overfitting or finding different local minima.
+\end{itemize}
+
+\subsubsection{Decision Trees (Random Forest \& XGBoost)}
+\begin{itemize}
+    \item \textbf{High Efficiency}: These models showed negligible performance loss when reducing data size. They were able to capture the primary predictive patterns just as effectively with 20\% of the data as with 80\%, highlighting their data efficiency for this specific tabular problem.
+\end{itemize}
+
+
+
+\newpage
+
+
+\section{Travel Behavior Insights - Multinomial Classification}
+\subsection{Overview}
+The Multiclassification dataset appears to be related to tourism and travel expenditure. The goal is likely to predict the \texttt{spend\_category} of a traveler based on various demographic and trip-related features. The dataset contains information about the traveler's origin, companions, activities, and trip details.
+
+\subsection{Dataset Structure}
+The dataset consists of the following columns:
+
+\begin{longtable}{lp{10cm}}
+\toprule
+\textbf{Feature Name} & \textbf{Description} \\
+\midrule
+\texttt{trip\_id} & Unique identifier for the trip/traveler. \\
+\texttt{country} & Country of origin or destination (likely origin based on context). \\
+\texttt{age\_group} & Age range of the traveler (e.g., 25-44, 45-64). \\
+\texttt{travel\_companions} & Who the traveler is accompanying (e.g., With Spouse, Alone). \\
+\texttt{num\_females} & Number of females in the group. \\
+\texttt{num\_males} & Number of males in the group. \\
+\texttt{main\_activity} & Primary activity during the trip (e.g., Beach Tourism, Wildlife Tourism). \\
+\texttt{visit\_purpose} & Purpose of the visit (e.g., Leisure and Holidays, Business). \\
+\texttt{is\_first\_visit} & Binary indicator if it is the first visit (Yes/No). \\
+\texttt{mainland\_stay\_nights} & Number of nights stayed on the mainland. \\
+\texttt{island\_stay\_nights} & Number of nights stayed on islands. \\
+\texttt{tour\_type} & Type of tour (e.g., Independent, Package Tour). \\
+\texttt{intl\_transport\_included} & Whether international transport is included (Yes/No). \\
+\texttt{info\_source} & Source of information about the trip (e.g., Travel agent, Friends). \\
+\texttt{accomodation\_included} & Whether accommodation is included (Yes/No). \\
+\texttt{food\_included} & Whether food is included (Yes/No). \\
+\texttt{domestic\_transport\_included} & Whether domestic transport is included (Yes/No). \\
+\texttt{sightseeing\_included} & Whether sightseeing is included (Yes/No). \\
+\texttt{guide\_included} & Whether a guide is included (Yes/No). \\
+\texttt{insurance\_included} & Whether insurance is included (Yes/No). \\
+\texttt{days\_booked\_before\_trip} & Timeframe of booking before the trip. \\
+\texttt{arrival\_weather} & Weather conditions upon arrival. \\
+\texttt{total\_trip\_days} & Duration of the trip. \\
+\texttt{has\_special\_requirements} & Any special requirements (e.g., dietary needs). \\
+\textbf{\texttt{spend\_category}} & \textbf{Target Variable}. Categorical variable indicating the spending level (e.g., 0.0, 1.0, 2.0). \\
+\bottomrule
+\end{longtable}
+
+\subsection{Target Variable Analysis}
+The target variable is \texttt{spend\_category}, which is a multiclass variable. It classifies the traveler's spending behavior into distinct categories.
+
+\subsubsection{Class Imbalance}
+The dataset exhibits a class imbalance across the spending categories:
+\begin{itemize}
+    \item \textbf{Category 0.0}: 49.5\% (6,245 instances) - Represents the majority class.
+    \item \textbf{Category 1.0}: 38.9\% (4,911 instances) - A significant portion of the data.
+    \item \textbf{Category 2.0}: 11.6\% (1,464 instances) - The minority class.
+\end{itemize}
+This distribution indicates that the model might be biased towards predicting lower spending categories (0.0 and 1.0) if not addressed properly. The minority class (2.0) is underrepresented, constituting only about 11.6\% of the dataset.
+
+\newpage
+
+\subsection{Preprocessing}
+
+The preprocessing pipeline was designed to handle the complexity of the multinomial classification task, ensuring data quality and creating informative features for the neural network models.
+
+\subsection{Initial Data Cleaning and Null Handling}
+\begin{itemize}
+    \item \textbf{Target Variable Cleaning}: We identified and removed 34 rows where the target variable \texttt{spend\_category} was null, as these samples cannot be used for supervised learning.
+    \item \textbf{String Sanitization}: All object-type columns were processed to strip leading/trailing whitespace and remove trailing commas, ensuring consistency in categorical values.
+    \item \textbf{Binary Feature Standardization}:
+    \begin{itemize}
+        \item Columns containing "Yes"/"No" values (e.g., \texttt{is\_first\_visit}, \texttt{food\_included}, \texttt{intl\_transport\_included}) were mapped to binary integers (1/0).
+        \item The \texttt{has\_special\_requirements} column was converted to a binary flag: 0 if "None", "NaN", or empty; 1 otherwise.
+    \end{itemize}
+\end{itemize}
+
+\subsection{Ordinal Encoding of Range Features}
+To preserve the order inherent in range-based features, we applied specific ordinal mappings instead of one-hot encoding:
+\begin{itemize}
+    \item \textbf{\texttt{days\_booked\_before\_trip}}: Mapped to an ordinal scale of 1-6:
+    \begin{itemize}
+        \item "1-7" $\rightarrow$ 1, "8-14" $\rightarrow$ 2, "15-30" $\rightarrow$ 3, "31-60" $\rightarrow$ 4, "61-90" $\rightarrow$ 5, "90+" $\rightarrow$ 6.
+    \end{itemize}
+    \item \textbf{\texttt{total\_trip\_days}}: Mapped to an ordinal scale of 1-4:
+    \begin{itemize}
+        \item "1-6" $\rightarrow$ 1, "7-14" $\rightarrow$ 2, "15-30" $\rightarrow$ 3, "30+" $\rightarrow$ 4.
+    \end{itemize}
+    \item \textbf{Imputation Strategy}: Missing values in these ordinal columns (and other categorical features) were imputed using the \textbf{mode} (most frequent value) to maintain data integrity without introducing synthetic noise.
+\end{itemize}
+
+\subsection{Outlier Removal}
+We performed a rigorous outlier analysis and removal process based on domain knowledge and distribution tails. Approximately 71 rows were removed in total based on the following thresholds:
+\begin{itemize}
+    \item \textbf{\texttt{num\_females}}: Removed records with $> 10$ females (28 rows).
+    \item \textbf{\texttt{num\_males}}: Removed records with $> 10$ males (8 rows).
+    \item \textbf{\texttt{mainland\_stay\_nights}}: Removed trips exceeding 90 nights (27 rows).
+    \item \textbf{\texttt{island\_stay\_nights}}: Removed trips exceeding 60 nights (8 rows).
+\end{itemize}
+
+\subsection{Advanced Feature Engineering: Clustering}
+To capture complex, non-linear relationships between traveler attributes, we employed unsupervised learning as a feature engineering step:
+\begin{itemize}
+    \item \textbf{Algorithm}: K-Means Clustering.
+    \item \textbf{Input Features}: Standardized numeric features (\texttt{num\_females}, \texttt{num\_males}, \texttt{mainland\_stay\_nights}, \texttt{island\_stay\_nights}, \texttt{days\_booked\_before\_trip\_ord}, \texttt{total\_trip\_days\_ord}).
+    \item \textbf{Configuration}: \texttt{n\_clusters=6}, \texttt{random\_state=42}.
+    \item \textbf{Optimal K Selection}: We determined the optimal number of clusters (K=6) using a combination of quantitative and visual methods:
+    \begin{itemize}
+        \item \textbf{Elbow Method}: Analyzed the Within-Cluster Sum of Squares (Inertia) plot to identify the "elbow" point where variance reduction slows down.
+        \item \textbf{Silhouette Analysis}: Calculated Silhouette Scores for K ranging from 2 to 10. The score peaked at K=6, indicating the best separation and cohesion.
+        \item \textbf{PCA Visualization}: Projected the data into 2D space using Principal Component Analysis (PCA) to visually confirm the distinctness of the 6 clusters.
+    \end{itemize}
+    \item \textbf{Output}: A new categorical feature \texttt{kmeans\_cluster} was assigned to each sample, representing the "traveler profile" cluster it belongs to. This feature allows the downstream classifier to learn cluster-specific patterns.
+\end{itemize}
+
+\subsection{Final Data Transformation Pipeline}
+The final dataset was processed using a \texttt{ColumnTransformer} before feeding into the models:
+\begin{itemize}
+    \item \textbf{Numeric Features}: Standardized using \texttt{StandardScaler} to ensure zero mean and unit variance, crucial for Neural Network convergence.
+    \item \textbf{Categorical Features}: Encoded using \texttt{OneHotEncoder} (including the generated \texttt{kmeans\_cluster} feature), with \texttt{handle\_unknown='ignore'} to robustly handle unseen categories in test data.
+    \item \textbf{Class Imbalance Handling}: We applied \textbf{SMOTE} (Synthetic Minority Over-sampling Technique) to the training set. This generated synthetic samples for minority classes in the \texttt{spend\_category} target, ensuring the model does not become biased toward the majority class.
+\end{itemize}
+
+\section{Multinomial Classification Models}
+
+\subsection{Decision Trees}
+
+\subsubsection{CatBoost}
+
+\textbf{Method Description:}
+CatBoost is a gradient boosting algorithm that handles categorical features automatically.
+
+\begin{itemize}
+    \item \textbf{Skewed:} Trained on the natural distribution of the dataset.
+    \item \textbf{Non-Skewed:} Trained on a balanced dataset created by upsampling minority classes.
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% & Skewed & 0.8113 & 0.7625 \\
+80\% & Non-Skewed & 0.8991 & 0.7458 \\
+20\% & Skewed & 0.8477 & 0.7508 \\
+20\% & Non-Skewed & 0.9284 & 0.7340 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.679
+    \item \textbf{Non-Skewed\_80:} 0.700
+\end{itemize}
+
+\subsubsection{XGBoost}
+
+\textbf{Method Description:}
+XGBoost is an optimized distributed gradient boosting library.
+
+\begin{itemize}
+    \item \textbf{Skewed:} Trained on the natural distribution.
+    \item \textbf{Non-Skewed:} Trained on a balanced dataset (upsampled).
+\end{itemize}
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% & Skewed & 0.9206 & 0.7450 \\
+80\% & Non-Skewed & 0.9559 & 0.7363 \\
+20\% & Skewed & 0.9968 & 0.7365 \\
+20\% & Non-Skewed & 0.9978 & 0.7173 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.675
+    \item \textbf{Non-Skewed\_80:} 0.700
+    \item \textbf{Non-Skewed\_20:} 0.663
+\end{itemize}
+
+\subsubsection{Ensemble (XGBoost 0.4 + CatBoost 0.6)}
+
+\textbf{Method Description:}
+This method combines the predictions of XGBoost and CatBoost using a weighted average.
+
+\begin{itemize}
+    \item \textbf{Weights:} 0.4 for XGBoost, 0.6 for CatBoost.
+\end{itemize}
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% & Skewed & 0.8598 & 0.7554 \\
+80\% & Non-Skewed & 0.9287 & 0.7458 \\
+20\% & Skewed & 0.9398 & 0.7432 \\
+20\% & Non-Skewed & 0.9820 & 0.7339 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Non-Skewed\_80:} 0.705
+\end{itemize}
+
+\subsubsection{Ensemble (XGBoost + CatBoost)}
+
+\textbf{Method Description:}
+This method uses a different weighting scheme or a voting mechanism between XGBoost and CatBoost.
+
+\begin{itemize}
+    \item \textbf{Skewed:} Trained on the natural distribution.
+    \item \textbf{Non-Skewed:} Trained on a balanced dataset.
+\end{itemize}
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% & Skewed & 0.8774 & 0.7498 \\
+80\% & Non-Skewed & 0.9429 & 0.7482 \\
+20\% & Skewed & 0.9737 & 0.7428 \\
+20\% & Non-Skewed & 0.9903 & 0.7313 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.683
+    \item \textbf{Non-Skewed\_80:} 0.703
+    \item \textbf{Skewed\_20:} 0.646
+    \item \textbf{Non-Skewed\_20:} 0.672
+\end{itemize}
+
+\subsubsection{Random Forest}
+
+\textbf{Method Description:}
+This method uses Random forests.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llc}
+\toprule
+\textbf{Dataset Size} & \textbf{Data Distribution} & \textbf{Validation Accuracy} \\
+\midrule
+80\% & Skewed & 0.7514 \\
+80\% & Non-Skewed & 0.7355 \\
+20\% & Skewed & 0.7402 \\
+20\% & Non-Skewed & 0.7279 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.655
+    \item \textbf{Non-Skewed\_80:} 0.693
+    \item \textbf{Skewed\_20:} 0.629
+    \item \textbf{Non-Skewed\_20:} 0.664
+\end{itemize}
+
+\subsection{Multiclass Logistic Regression}
+
+\subsubsection{Bayesian Approach (Best)}
+
+\textbf{Description:}
+This method utilizes Bayesian Optimization (specifically using Gaussian Processes) to tune the hyperparameters of the Logistic Regression model, primarily the inverse regularization strength \texttt{C}. This approach is generally more efficient than grid search for finding optimal hyperparameters.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% Training (Skewed) & 0.7642 & 0.7580 \\
+80\% Training (Non-Skewed) & 0.7319 & 0.7112 \\
+20\% Training (Skewed) & 0.7938 & 0.7331 \\
+20\% Training (Non-Skewed) & 0.7882 & 0.6972 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.664
+    \item \textbf{Non-Skewed\_80:} 0.690
+    \item \textbf{Skewed\_20:} 0.645
+    \item \textbf{Non-Skewed\_20:} 0.656
+\end{itemize}
+
+\subsubsection{Multiclass LR Outlier3 (Best)}
+
+\textbf{Description:}
+This variation applies specific outlier removal thresholds to the training data before fitting the model. By removing extreme values (e.g., in \texttt{num\_females}, \texttt{num\_males}), it aims to improve the model's robustness and generalization.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% Training (Skewed) & 0.7614 & 0.7575 \\
+80\% Training (Non-Skewed) & 0.7322 & 0.7131 \\
+20\% Training (Skewed) & 0.7869 & 0.7470 \\
+20\% Training (Non-Skewed) & 0.7835 & 0.7072 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.665
+    \item \textbf{Non-Skewed\_80:} 0.690
+    \item \textbf{Skewed\_20:} 0.643
+    \item \textbf{Non-Skewed\_20:} 0.665
+\end{itemize}
+
+\subsubsection{Multiclass LR With 6 K-Means Clustering (Best)}
+
+\textbf{Description:}
+This method incorporates feature engineering using K-Means clustering. It clusters the data into 6 clusters and adds the cluster labels as a new categorical feature, allowing the linear model to capture some non-linear structures in the data.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% Training (Skewed) & 0.7645 & 0.7525 \\
+80\% Training (Non-Skewed) & 0.7332 & 0.7156 \\
+20\% Training (Skewed) & 0.7864 & 0.7371 \\
+20\% Training (Non-Skewed) & 0.7868 & 0.7072 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Non-Skewed\_80:} 0.690
+\end{itemize}
+
+\subsubsection{Multiclass LR With 6 Clustering (Proper) (K-Means + GMM)}
+
+\textbf{Description:}
+An extension of the clustering approach that utilizes both K-Means and Gaussian Mixture Models (GMM) for feature engineering. This likely provides a richer set of cluster-based features to better represent the underlying data distribution.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% Training (Skewed) & 0.7653 & 0.7510 \\
+80\% Training (Non-Skewed) & 0.7306 & 0.7156 \\
+20\% Training (Skewed) & 0.7923 & 0.7331 \\
+20\% Training (Non-Skewed) & 0.7795 & 0.7072 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.667
+    \item \textbf{Non-Skewed\_80:} 0.688
+    \item \textbf{Skewed\_20:} 0.642
+    \item \textbf{Non-Skewed\_20:} 0.658
+\end{itemize}
+
+\subsubsection{Random + Bayesian}
+
+\textbf{Description:}
+This method employs a two-stage hyperparameter tuning strategy. It starts with a Randomized Search to explore a wide range of hyperparameters and identify promising regions, followed by Bayesian Optimization to fine-tune the parameters for optimal performance.
+
+\textbf{Results:}
+\begin{table}[H]
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Accuracy} & \textbf{Validation Accuracy} \\
+\midrule
+80\% Training (Skewed) & 0.7620 & 0.7590 \\
+80\% Training (Non-Skewed) & 0.7287 & 0.7236 \\
+20\% Training (Skewed) & 0.7644 & 0.7530 \\
+20\% Training (Non-Skewed) & 0.7711 & 0.7131 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.664
+    \item \textbf{Non-Skewed\_80:} 0.689
+    \item \textbf{Skewed\_20:} 0.603
+    \item \textbf{Non-Skewed\_20:} 0.659
+\end{itemize}
+
+\subsection{Neural Networks (MLP)}
+
+\subsubsection{MLP Classifier}
+
+\textbf{Description:}
+This approach uses Scikit-Learn's \texttt{MLPClassifier} with three different architectures:
+
+\begin{itemize}
+    \item \textbf{Small:} (50,) hidden units.
+    \item \textbf{Medium:} (100, 50) hidden units.
+    \item \textbf{Large:} (150, 100, 50) hidden units.
+\end{itemize}
+
+It incorporates K-Means clustering (k=6) as an additional feature. The models are evaluated on two specific split configurations:
+
+\begin{itemize}
+    \item \textbf{Split A:} 80\% Train, 10\% Val, 10\% Test.
+    \item \textbf{Split B:} 20\% Train, 40\% Val, 40\% Test.
+\end{itemize}
+
+\textbf{Results:}
+
+\paragraph*{MLP Small:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} \\
+\midrule
+80\% Train & Skewed & 0.6725 & 0.6733 \\
+80\% Train & Non-Skewed & 0.6582 & 0.6343 \\
+20\% Train & Skewed & 0.6649 & 0.6763 \\
+20\% Train & Non-Skewed & 0.6608 & 0.6661 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.618
+    \item \textbf{Non-Skewed\_80:} 0.608
+    \item \textbf{Skewed\_20:} 0.618
+    \item \textbf{Non-Skewed\_20:} 0.612
+\end{itemize}
+
+\paragraph*{MLP Medium:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} \\
+\midrule
+80\% Train & Skewed & 0.6606 & 0.6900 \\
+80\% Train & Non-Skewed & 0.6757 & 0.6685 \\
+20\% Train & Skewed & 0.6829 & 0.6797 \\
+20\% Train & Non-Skewed & 0.6681 & 0.6779 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.607
+    \item \textbf{Non-Skewed\_80:} 0.627
+    \item \textbf{Skewed\_20:} 0.606
+    \item \textbf{Non-Skewed\_20:} 0.621
+\end{itemize}
+
+\paragraph*{MLP Large:}
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} \\
+\midrule
+80\% Train & Skewed & 0.6622 & 0.6582 \\
+80\% Train & Non-Skewed & 0.6813 & 0.6749 \\
+20\% Train & Skewed & 0.6853 & 0.6873 \\
+20\% Train & Non-Skewed & 0.6673 & 0.6747 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80:} 0.614
+    \item \textbf{Non-Skewed\_80:} 0.619
+    \item \textbf{Skewed\_20:} 0.643
+    \item \textbf{Non-Skewed\_20:} 0.614
+\end{itemize}
+
+\subsubsection{MLP with SMOTE}
+
+\textbf{Description:}
+This method uses Keras \texttt{Sequential} models with similar architectures (Small, Medium, Large) but applies \textbf{SMOTE} (Synthetic Minority Over-sampling Technique) to the training data to handle class imbalance.
+
+\begin{itemize}
+    \item \textbf{Small:} Dense(64) $\rightarrow$ Dropout.
+    \item \textbf{Medium:} Dense(128) $\rightarrow$ BN $\rightarrow$ Dropout $\rightarrow$ Dense(64) $\rightarrow$ Dropout.
+    \item \textbf{Large:} Dense(256) $\rightarrow$ BN $\rightarrow$ Dropout $\rightarrow$ Dense(128) $\rightarrow$ Dropout $\rightarrow$ Dense(64) $\rightarrow$ Dropout.
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llcc}
+\toprule
+\textbf{Model Architecture} & \textbf{Dataset Config} & \textbf{Validation Accuracy} & \textbf{Test Accuracy} \\
+\midrule
+\textbf{MLP Small} & 80\% Train & 0.7267 & 0.7482 \\
+\textbf{MLP Small} & 20\% Train & 0.7070 & 0.7137 \\
+\textbf{MLP Medium} & 80\% Train & 0.7100 & 0.7315 \\
+\textbf{MLP Medium} & 20\% Train & 0.7110 & 0.7137 \\
+\textbf{MLP Large} & 80\% Train & 0.7139 & 0.7219 \\
+\textbf{MLP Large} & 20\% Train & 0.7072 & 0.7066 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Small\_80:} 0.704
+    \item \textbf{Small\_20:} 0.677
+    \item \textbf{Medium\_80:} 0.687
+    \item \textbf{Medium\_20:} 0.668
+    \item \textbf{Large\_80:} 0.678
+    \item \textbf{Large\_20:} 0.664
+\end{itemize}
+
+\subsubsection{MLP with SMOTE+Bayesian}
+
+\textbf{Description:}
+This method advances the Neural Network approach by combining SMOTE for data balancing with Bayesian Optimization (via Optuna). 
+
+Did mlp + smote + bayesian only on small nn as it was only giving promoising results and others did not give much significant result and training time was too long.
+
+\textbf{Results:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{cc}
+\toprule
+\textbf{Validation Accuracy} & \textbf{Test Accuracy} \\
+\midrule
+0.7506 & 0.7777 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Smote+Bayesian:} 0.661
+\end{itemize}
+
+\subsection{Support Vector Machines (SVM)}
+
+\subsubsection{SVM (No Tuning)}
+
+\textbf{Description:}
+This approach evaluates standard SVM kernels (Linear, RBF, Poly, Sigmoid) without hyperparameter tuning. It uses the same preprocessing pipeline (including K-Means clustering with k=6) and split configurations as the other methods.
+
+\textbf{Results:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Kernel} & \textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} \\
+\midrule
+\textbf{RBF} & 80\% Train & Skewed & 0.7418 \\
+\textbf{RBF} & 80\% Train & Non-Skewed & 0.7155 \\
+\textbf{RBF} & 20\% Train & Skewed & 0.7335 \\
+\textbf{RBF} & 20\% Train & Non-Skewed & 0.7048 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Kernel} & \textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} \\
+\midrule
+\textbf{Linear} & 80\% Train & Skewed & 0.7371 \\
+\textbf{Linear} & 80\% Train & Non-Skewed & 0.7020 \\
+\textbf{Linear} & 20\% Train & Skewed & 0.7281 \\
+\textbf{Linear} & 20\% Train & Non-Skewed & 0.6986 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Kernel} & \textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} \\
+\midrule
+\textbf{Sigmoid} & 80\% Train & Skewed & 0.6566 \\
+\textbf{Sigmoid} & 80\% Train & Non-Skewed & 0.5992 \\
+\textbf{Sigmoid} & 20\% Train & Skewed & 0.6823 \\
+\textbf{Sigmoid} & 20\% Train & Non-Skewed & 0.6299 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Kernel} & \textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Validation Accuracy} \\
+\midrule
+\textbf{Poly} & 80\% Train & Skewed & 0.7482 \\
+\textbf{Poly} & 80\% Train & Non-Skewed & 0.7108 \\
+\textbf{Poly} & 20\% Train & Skewed & 0.7307 \\
+\textbf{Poly} & 20\% Train & Non-Skewed & 0.6918 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80\_RBF:} 0.571
+    \item \textbf{Non-Skewed\_80\_RBF:} 0.571
+    \item \textbf{Skewed\_20\_RBF:} 0.554
+    \item \textbf{Non-Skewed\_20\_RBF:} 0.597
+    \item \textbf{Skewed\_80\_Linear:} 0.614
+    \item \textbf{Non-Skewed\_80\_Linear:} 0.690
+    \item \textbf{Skewed\_20\_Linear:} 0.598
+    \item \textbf{Non-Skewed\_20\_Linear:} 0.665
+    \item \textbf{Skewed\_80\_Sigmoid:} 0.614
+    \item \textbf{Non-Skewed\_80\_Sigmoid:} 0.682
+    \item \textbf{Skewed\_20\_Sigmoid:} 0.553
+    \item \textbf{Non-Skewed\_20\_Sigmoid:} 0.655
+    \item \textbf{Skewed\_80\_Poly:} 0.616
+    \item \textbf{Non-Skewed\_80\_Poly:} 0.667
+    \item \textbf{Skewed\_20\_Poly:} 0.621
+    \item \textbf{Non-Skewed\_20\_Poly:} 0.663
+\end{itemize}
+
+\subsubsection{SVM (Tuned)}
+
+\textbf{Description:}
+This approach uses Bayesian Optimization (via Optuna) to tune hyperparameters for Linear and RBF kernels.
+
+\begin{itemize}
+    \item \textbf{Linear:} Tunes \texttt{C}.
+    \item \textbf{RBF:} Tunes \texttt{C} and \texttt{gamma}.
+\end{itemize}
+
+\textbf{Results:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllc}
+\toprule
+\textbf{Kernel} & \textbf{Dataset Config} & \textbf{Train Dist.} & \textbf{Best Accuracy} \\
+\midrule
+\textbf{Linear} & 80\% Train & Skewed & 0.7394 \\
+\textbf{RBF} & 80\% Train & Skewed & 0.7514 \\
+\textbf{Linear} & 80\% Train & Non-Skewed & 0.7203 \\
+\textbf{RBF} & 80\% Train & Non-Skewed & 0.7171 \\
+\textbf{Linear} & 20\% Train & Skewed & 0.7315 \\
+\textbf{RBF} & 20\% Train & Skewed & 0.7382 \\
+\textbf{Linear} & 20\% Train & Non-Skewed & 0.7034 \\
+\textbf{RBF} & 20\% Train & Non-Skewed & 0.7175 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Leaderboard Score}
+\begin{itemize}
+    \item \textbf{Skewed\_80\_RBF:} 0.634
+    \item \textbf{Non-Skewed\_80\_RBF:} 0.686
+    \item \textbf{Skewed\_20\_RBF:} 0.621
+    \item \textbf{Non-Skewed\_20\_RBF:} 0.656
+    \item \textbf{Skewed\_80\_Linear:} 0.616
+    \item \textbf{Non-Skewed\_80\_Linear:} 0.680
+    \item \textbf{Skewed\_20\_Linear:} 0.598
+    \item \textbf{Non-Skewed\_20\_Linear:} 0.665
+\end{itemize}
+
+\newpage
+\section{Comparative Analysis \& Conclusion (Multinomial Classification)}
+
+\subsection{Best Model Performance}
+\begin{itemize}
+    \item Tree-based \textbf{Gradient Boosting models} demonstrated the strongest results on the Kaggle leaderboard.
+    \begin{itemize}
+        \item \textbf{CatBoost (Skewed 80\% Train)} $\rightarrow$ 0.679
+        \item \textbf{XGBoost (Skewed 80\% Train)} $\rightarrow$ 0.675
+    \end{itemize}
+    \item The \textbf{top-ranked leaderboard submission} was achieved using an \textbf{ensemble approach}:
+    \begin{itemize}
+        \item \textbf{XGBoost 0.4 + CatBoost 0.6 (Balanced 80\% Train)} $\rightarrow$ \textbf{0.705} (Best Overall)
+    \end{itemize}
+    \item \textbf{Neural Networks (MLP)} were competitive only at small scale:
+    \begin{itemize}
+        \item \textbf{MLP Small + SMOTE (80\% Train)} $\rightarrow$ 0.704 leaderboard score
+        \item Further tuning using SMOTE + Bayesian increased test accuracy (0.7777) but resulted in a lower leaderboard gain (0.661), showing that boosting generalizes better for leaderboard evaluation.
+    \end{itemize}
+    \item \textbf{SVM models}, even when tuned, achieved moderate scores (best 0.634) and were more sensitive to data imbalance and training size.
+    \item \textbf{Random Forest} lagged behind boosting and small MLP models, especially on reduced or balanced splits.
+\end{itemize}
+
+\textbf{Overall Ranking Trend:}
+Boosting Ensemble $>$ CatBoost $>$ XGBoost $>$ MLP Small (Balanced 80\%) $>$ SVM (Tuned) $>$ Random Forest $>$ Larger MLPs
+
+\subsection{Impact of Skewed vs. Balanced Training Data}
+\begin{itemize}
+    \item \textbf{Balancing the training data improved generalization on Kaggle}, especially for:
+    \begin{itemize}
+        \item SVM (Linear kernel improved from 0.614 $\rightarrow$ 0.690 when balanced)
+        \item Boosting Ensembles (best performer at 0.705)
+    \end{itemize}
+    \item \textbf{Validation accuracy slightly dropped for boosting when balanced}, indicating synthetic noise from upsampling, but leaderboard performance still improved.
+    \item \textbf{Medium \& Large MLP networks did not gain significant leaderboard benefits from balancing} and incurred much longer training time.
+    \item \textbf{SMOTE was more effective than simple upsampling}, especially for small neural networks, but still could not outperform boosted tree generalization at larger scales.
+\end{itemize}
+
+\textbf{Key Observation:}
+\begin{itemize}
+    \item Balancing helps fairness and leaderboard performance.
+    \item But may slightly reduce raw validation accuracy due to synthetic noise.
+\end{itemize}
+
+\subsection{Impact of Dataset Size (80\% vs. 20\% Train)}
+\begin{itemize}
+    \item \textbf{80\% training allowed better learning for most models}, especially boosting and small MLPs.
+    \item \textbf{20\% training significantly reduced performance}, but:
+    \begin{itemize}
+        \item \textbf{XGBoost, CatBoost, and Ensembles remained resilient}, still scoring within $\sim$0.66–0.68 range on Kaggle.
+        \item \textbf{Small MLP showed stability}, maintaining nearly the same Kaggle score for 80\% and 20\% training ($\sim$0.618 both skewed, $\sim$0.612 balanced).
+        \item \textbf{SVM performance dropped the most} under limited training data.
+    \end{itemize}
+\end{itemize}
+
+\textbf{Key Observation:}
+\begin{itemize}
+    \item Boosted trees degrade gracefully when data is limited.
+    \item SVM and larger MLPs struggle when train size is extremely small.
+\end{itemize}
+
+\subsection{Final Takeaways}
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm}p{3cm}p{3cm}p{3cm}}
+\toprule
+\textbf{Model Category} & \textbf{Leaderboard Strength} & \textbf{Data Balancing Benefit} & \textbf{Low-Resource (20\% Train) Robustness} \\
+\midrule
+Gradient Boosting (Tree models) & \textbf{Highest} & \textbf{High} but slight val drop & \textbf{Most Robust} \\
+Ensemble (XGBoost + CatBoost) & \textbf{Best Overall (0.705)} & \textbf{Maximum Benefit} & \textbf{Highly Resilient} \\
+MLP Neural Network & \textbf{Good only at Small scale} & \textbf{Helped small NN most} & \textbf{Stable only for small NN} \\
+SVM & \textbf{Moderate even when tuned} & \textbf{Largest Benefit from balancing} & \textbf{Least Robust} \\
+Random Forest & \textbf{Lower compared to Boosting \& small NN} & \textbf{Minor/Negative} & \textbf{Low} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Final Conclusion}
+\textbf{The ensemble of XGBoost and CatBoost trained on 80\% balanced data generalized best on Kaggle’s leaderboard, while individual gradient-boosted decision trees remained the most robust to both class skew and dataset size reduction. Data balancing improved generalization and fairness, particularly for SVM and ensemble models, but introduced slightly lower validation accuracy in some cases. Training on only 20\% of data caused performance degradation for most algorithms, except boosted trees and small MLP networks, which showed relative stability. Overall, gradient-boosting ensembles proved to be the best choice for leaderboard success and real-world multinomial classification generalization.}
+
+\end{document}
