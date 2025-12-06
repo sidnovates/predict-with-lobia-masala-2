@@ -58,6 +58,12 @@ def run_svm_linear(model_dir, X_train, y_train, X_val, y_val,
 
     model.fit(X_train, y_train)
 
+    import joblib
+    # ===== SAVE TRAINED MODEL =====
+    model_save_path = os.path.join(model_dir, "trained_model.joblib")
+    joblib.dump(model, model_save_path)
+    print(f"Model saved at: {model_save_path}")
+
     # ===== VALIDATION =====
     val_pred = model.predict(X_val)
     val_acc = accuracy_score(y_val, val_pred)

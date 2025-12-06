@@ -57,6 +57,12 @@ def run_lr(model_dir, X_train, y_train, X_val, y_val, X_test_internal, y_test_in
 
     model.fit(X_train, y_train)
 
+    import joblib
+    # ===== SAVE TRAINED MODEL =====
+    model_save_path = os.path.join(model_dir, "trained_model.joblib")
+    joblib.dump(model, model_save_path)
+    print(f"Model saved at: {model_save_path}")
+
     # ===== VALIDATION =====
     val_pred = model.predict(X_val)
     val_acc = accuracy_score(y_val, val_pred)
@@ -86,7 +92,7 @@ def run_lr(model_dir, X_train, y_train, X_val, y_val, X_test_internal, y_test_in
         "RiskFlag": final_pred.astype(int)
     })
 
-    csv_name = model_dir.split("\\")[-1] + "_Binomial_LR.csv"
+    csv_name = model_dir.split("\\")[-1] + "_Binomial_LR_.csv"
     submission.to_csv(os.path.join(model_dir, csv_name), index=False)
 
 
@@ -95,7 +101,7 @@ def run_lr(model_dir, X_train, y_train, X_val, y_val, X_test_internal, y_test_in
 # ==========================================================
 def run_all_lr_models():
 
-    BASE_DIR = "Binomial_LR"
+    BASE_DIR = "Binomial_LR_Check"
     os.makedirs(BASE_DIR, exist_ok=True)
 
     # =========================================
